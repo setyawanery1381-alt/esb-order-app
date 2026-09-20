@@ -144,6 +144,7 @@ export const KitchenDisplay = () => {
               { id: 'RECEIVED', label: 'Antrean Diterima' },
               { id: 'COOKING', label: 'Sedang Dimasak' },
               { id: 'READY', label: 'Siap Disajikan' },
+              { id: 'COMPLETED', label: 'Riwayat Selesai' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -160,7 +161,7 @@ export const KitchenDisplay = () => {
           </div>
 
           <span className="text-xs text-neutral-400 font-medium">
-            Menampilkan <b>{filteredOrders.length}</b> pesanan aktif
+            Menampilkan <b>{filteredOrders.length}</b> pesanan
           </span>
         </div>
 

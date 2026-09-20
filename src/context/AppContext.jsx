@@ -85,23 +85,37 @@ export const AppProvider = ({ children }) => {
 
   // Listen to cross-tab updates via storage event & BroadcastChannel
   useEffect(() => {
-    const channel = new BroadcastChannel('esb_sync_channel');
-
-    const handleMessage = (event) => {
-      const { type, payload } = event.data;
-      if (type === 'NEW_ORDER' || type === 'UPDATE_ORDER_STATUS') {
-        const saved = localStorage.getItem(STORAGE_ORDERS_KEY);
-        if (saved) setKitchenOrders(JSON.parse(saved));
-      } else if (type === 'WAITER_CALL' || type === 'RESOLVE_WAITER_CALL') {
-        const saved = localStorage.getItem(STORAGE_WAITER_KEY);
-        if (saved) setWaiterCalls(JSON.parse(saved));
-      } else if (type === 'TOGGLE_STOCK') {
-        const saved = localStorage.getItem(STORAGE_STOCK_KEY);
-        if (saved) setOutOfStockIds(JSON.parse(saved));
-      }
-    };
-
-    channel.onmessage = handleMessage;
+    let channel;
+    try {
+      channel = new BroadcastChannel('esb_sync_channel');
+      channel.onmessage = (event) => {
+        const { type, payload } = event.data || {};
+        if (type === 'NEW_ORDER' || type === 'UPDATE_ORDER_STATUS') {
+          if (payload && Array.isArray(payload)) {
+            setKitchenOrders(payload);
+          } else {
+            const saved = localStorage.getItem(STORAGE_ORDERS_KEY);
+            if (saved) setKitchenOrders(JSON.parse(saved));
+          }
+        } else if (type === 'WAITER_CALL' || type === 'RESOLVE_WAITER_CALL') {
+          if (payload && Array.isArray(payload)) {
+            setWaiterCalls(payload);
+          } else {
+            const saved = localStorage.getItem(STORAGE_WAITER_KEY);
+            if (saved) setWaiterCalls(JSON.parse(saved));
+          }
+        } else if (type === 'TOGGLE_STOCK') {
+          if (payload && Array.isArray(payload)) {
+            setOutOfStockIds(payload);
+          } else {
+            const saved = localStorage.getItem(STORAGE_STOCK_KEY);
+            if (saved) setOutOfStockIds(JSON.parse(saved));
+          }
+        }
+      };
+    } catch (e) {
+      console.warn('BroadcastChannel not supported', e);
+    }
 
     const handleStorage = (e) => {
       if (e.key === STORAGE_ORDERS_KEY && e.newValue) {
@@ -116,7 +130,7 @@ export const AppProvider = ({ children }) => {
     window.addEventListener('storage', handleStorage);
 
     return () => {
-      channel.close();
+      if (channel) channel.close();
       window.removeEventListener('storage', handleStorage);
     };
   }, []);
@@ -125,7 +139,9 @@ export const AppProvider = ({ children }) => {
     try {
       const channel = new BroadcastChannel('esb_sync_channel');
       channel.postMessage({ type, payload });
-      channel.close();
+      setTimeout(() => {
+        try { channel.close(); } catch {}
+      }, 1000);
     } catch (e) {
       console.warn('BroadcastChannel error', e);
     }
@@ -194,7 +210,7 @@ export const AppProvider = ({ children }) => {
   const totalCartCount = cart.reduce((acc, curr) => acc + curr.quantity, 0);
 
   // Submit Order
-  const submitOrder = (paymentMethod) => {
+  const submitOrder = (paymentMethod = 'CASHIER') => {
     const orderId = `ORD-${Date.now().toString().slice(-6)}`;
     const newOrder = {
       orderId,
@@ -214,22 +230,34 @@ export const AppProvider = ({ children }) => {
       updatedAt: new Date().toISOString(),
     };
 
-    setKitchenOrders(prev => [newOrder, ...prev]);
+    const updated = [newOrder, ...kitchenOrders];
+    setKitchenOrders(updated);
+    try {
+      localStorage.setItem(STORAGE_ORDERS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('localStorage error', e);
+    }
     setActiveOrderId(orderId);
     clearCart();
-    broadcast('NEW_ORDER', newOrder);
+    broadcast('NEW_ORDER', updated);
     return newOrder;
   };
 
   // Update Order Status (for Kitchen staff)
   const updateOrderStatus = (orderId, newStatus) => {
-    setKitchenOrders(prev => prev.map(ord => {
+    const updated = kitchenOrders.map(ord => {
       if (ord.orderId === orderId) {
         return { ...ord, orderStatus: newStatus, updatedAt: new Date().toISOString() };
       }
       return ord;
-    }));
-    broadcast('UPDATE_ORDER_STATUS', { orderId, newStatus });
+    });
+    setKitchenOrders(updated);
+    try {
+      localStorage.setItem(STORAGE_ORDERS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('localStorage error', e);
+    }
+    broadcast('UPDATE_ORDER_STATUS', updated);
   };
 
   // Call Waiter
@@ -241,15 +269,27 @@ export const AppProvider = ({ children }) => {
       createdAt: new Date().toISOString(),
       resolved: false,
     };
-    setWaiterCalls(prev => [newCall, ...prev]);
-    broadcast('WAITER_CALL', newCall);
+    const updated = [newCall, ...waiterCalls];
+    setWaiterCalls(updated);
+    try {
+      localStorage.setItem(STORAGE_WAITER_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('localStorage error', e);
+    }
+    broadcast('WAITER_CALL', updated);
     return newCall;
   };
 
   // Resolve Waiter Call
   const resolveWaiterCall = (callId) => {
-    setWaiterCalls(prev => prev.map(c => c.id === callId ? { ...c, resolved: true } : c));
-    broadcast('RESOLVE_WAITER_CALL', { callId });
+    const updated = waiterCalls.map(c => c.id === callId ? { ...c, resolved: true } : c);
+    setWaiterCalls(updated);
+    try {
+      localStorage.setItem(STORAGE_WAITER_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('localStorage error', e);
+    }
+    broadcast('RESOLVE_WAITER_CALL', updated);
   };
 
   // Toggle Out of Stock
@@ -257,6 +297,11 @@ export const AppProvider = ({ children }) => {
     setOutOfStockIds(prev => {
       const exists = prev.includes(menuId);
       const updated = exists ? prev.filter(id => id !== menuId) : [...prev, menuId];
+      try {
+        localStorage.setItem(STORAGE_STOCK_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('localStorage error', e);
+      }
       broadcast('TOGGLE_STOCK', updated);
       return updated;
     });

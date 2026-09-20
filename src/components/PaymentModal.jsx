@@ -4,17 +4,16 @@ import { formatIDR } from '../utils/format';
 import { 
   X, 
   QrCode, 
-  Wallet, 
   Clock, 
   CheckCircle2, 
-  AlertCircle,
   ShieldCheck,
-  Building2
+  Building2,
+  Receipt
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
-  const { grandTotal, submitOrder, tableNumber, orderMode } = useApp();
+  const { currentTableOrder, tableNumber, orderMode, updateOrderStatus } = useApp();
 
   const [paymentMethod, setPaymentMethod] = useState('QRIS'); // 'QRIS' | 'CASHIER'
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
@@ -37,27 +36,30 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
   const seconds = timeLeft % 60;
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
+  const grandTotal = currentTableOrder ? currentTableOrder.grandTotal : 0;
+  const orderId = currentTableOrder ? currentTableOrder.orderId : '';
+
   const handleConfirmPayment = () => {
     setIsProcessing(true);
 
     setTimeout(() => {
-      const createdOrder = submitOrder(paymentMethod);
       setIsProcessing(false);
 
-      // Trigger celebration confetti
-      try {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      } catch (e) {
-        console.warn('Confetti error', e);
+      if (paymentMethod === 'QRIS') {
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+          });
+        } catch (e) {
+          console.warn('Confetti error', e);
+        }
       }
 
       onClose();
-      onOrderSuccess(createdOrder);
-    }, 1200);
+      if (onOrderSuccess) onOrderSuccess(currentTableOrder);
+    }, 800);
   };
 
   return (
@@ -66,22 +68,29 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
         className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50/80">
-          <div>
-            <h3 className="font-bold text-neutral-900 text-base leading-tight">
-              Metode Pembayaran
-            </h3>
-            <p className="text-xs text-neutral-500">
-              {orderMode === 'dinein' ? `Meja ${tableNumber}` : 'Takeaway'} • Total {formatIDR(grandTotal)}
-            </p>
+        {/* Header with order confirmation banner */}
+        <div className="p-4 border-b border-neutral-200 bg-neutral-50/80">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-bold mb-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Pesanan #{orderId} Terkirim ke Dapur!</span>
+              </div>
+              <h3 className="font-bold text-neutral-900 text-base leading-tight">
+                Pilih Pembayaran
+              </h3>
+              <p className="text-xs text-neutral-500">
+                {orderMode === 'dinein' ? `Meja ${tableNumber}` : 'Takeaway'} • Total {formatIDR(grandTotal)}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 text-neutral-400 hover:text-neutral-700 rounded-lg hover:bg-neutral-100 transition"
+              title="Tutup (Pesanan tetap berjalan)"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-neutral-700 rounded-lg hover:bg-neutral-100 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Content */}
@@ -130,7 +139,7 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
               {/* Dynamic QR Code Canvas/SVG */}
               <div className="bg-white p-4 rounded-xl border border-neutral-200/80 inline-block shadow-inner">
                 <svg
-                  className="w-48 h-48 mx-auto"
+                  className="w-44 h-44 mx-auto"
                   viewBox="0 0 120 120"
                   fill="currentColor"
                 >
@@ -200,14 +209,14 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
                 Bayar di Meja Kasir
               </h4>
               <p className="text-xs text-neutral-600 leading-relaxed max-w-xs mx-auto">
-                Pesanan Anda akan langsung dikirim ke dapur. Anda dapat melakukan pembayaran dengan uang tunai atau kartu debit/kredit di kasir setelah selesai makan.
+                Pesanan Anda telah masuk ke antrean dapur. Anda dapat melakukan pembayaran dengan uang tunai atau kartu debit/kredit di kasir setelah selesai makan.
               </p>
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-4 bg-white border-t border-neutral-200">
+        {/* Footer Actions */}
+        <div className="p-4 bg-white border-t border-neutral-200 space-y-2">
           <button
             disabled={isProcessing}
             onClick={handleConfirmPayment}
@@ -216,15 +225,15 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
             {isProcessing ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Memproses Pesanan...</span>
+                <span>Memproses...</span>
               </>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4" />
                 <span>
                   {paymentMethod === 'QRIS'
-                    ? 'Simulasikan Pembayaran Berhasil'
-                    : 'Kirim Pesanan ke Dapur'}
+                    ? 'Saya Sudah Bayar via QRIS'
+                    : 'Oke, Saya Bayar di Kasir Nanti'}
                 </span>
               </>
             )}

@@ -153,6 +153,7 @@ export const App = () => {
           isOpen={isCartOpen}
           onClose={() => setIsCartOpen(false)}
           onProceedToPayment={() => {
+            submitOrder('QRIS');
             setIsCartOpen(false);
             setIsPaymentOpen(true);
           }}
