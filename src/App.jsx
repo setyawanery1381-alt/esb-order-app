@@ -14,6 +14,8 @@ import { KitchenDisplay } from './components/KitchenDisplay';
 import { QRCodeModal } from './components/QRCodeModal';
 import { AdminMenuModal } from './components/AdminMenuModal';
 import { FirebaseModal } from './components/FirebaseModal';
+import { LandingDashboard } from './components/LandingDashboard';
+import { QRScannerModal } from './components/QRScannerModal';
 import { MENU_ITEMS, CATEGORIES } from './data/menuData';
 import { Sparkles, Utensils } from 'lucide-react';
 
@@ -32,6 +34,32 @@ export const App = () => {
   const [isQRCodeOpen, setIsQRCodeOpen] = useState(false);
   const [isStockAdminOpen, setIsStockAdminOpen] = useState(false);
   const [isFirebaseOpen, setIsFirebaseOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+  // If in Landing Dashboard mode, render LandingDashboard
+  if (viewMode === 'landing') {
+    return (
+      <>
+        <LandingDashboard
+          onOpenScanner={() => setIsScannerOpen(true)}
+          onOpenQRCode={() => setIsQRCodeOpen(true)}
+          onOpenFirebase={() => setIsFirebaseOpen(true)}
+        />
+        <QRScannerModal
+          isOpen={isScannerOpen}
+          onClose={() => setIsScannerOpen(false)}
+        />
+        <QRCodeModal
+          isOpen={isQRCodeOpen}
+          onClose={() => setIsQRCodeOpen(false)}
+        />
+        <FirebaseModal
+          isOpen={isFirebaseOpen}
+          onClose={() => setIsFirebaseOpen(false)}
+        />
+      </>
+    );
+  }
 
   // If in Kitchen / POS view mode, render KitchenDisplay
   if (viewMode === 'kitchen') {
@@ -65,6 +93,7 @@ export const App = () => {
           onOpenQRCode={() => setIsQRCodeOpen(true)}
           onOpenStockAdmin={() => setIsStockAdminOpen(true)}
           onOpenFirebase={() => setIsFirebaseOpen(true)}
+          onOpenScanner={() => setIsScannerOpen(true)}
         />
 
         {/* Promo Carousel (only when not searching) */}
@@ -203,6 +232,12 @@ export const App = () => {
         <FirebaseModal
           isOpen={isFirebaseOpen}
           onClose={() => setIsFirebaseOpen(false)}
+        />
+
+        {/* Barcode / QR Table Scanner Modal */}
+        <QRScannerModal
+          isOpen={isScannerOpen}
+          onClose={() => setIsScannerOpen(false)}
         />
       </div>
     </div>

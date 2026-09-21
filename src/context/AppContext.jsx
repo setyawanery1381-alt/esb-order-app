@@ -28,10 +28,15 @@ export const AppProvider = ({ children }) => {
     const company = segments.length >= 1 && segments[0].toLowerCase() !== 'order' ? segments[0].toUpperCase() : RESTAURANT_INFO.companyCode;
     const branch = segments.length >= 2 && segments[1].toLowerCase() !== 'order' ? segments[1].toUpperCase() : RESTAURANT_INFO.branchCode;
 
-    return { mode, table, company, branch };
+    // Detect if direct table QR was scanned or accessed directly
+    const hasTableParam = params.has('tableNumber');
+    const hasOrderPath = window.location.pathname.toLowerCase().includes('order');
+    const initialView = (hasTableParam || hasOrderPath) ? 'customer' : 'landing';
+
+    return { mode, table, company, branch, initialView };
   };
 
-  const { mode: initMode, table: initTable, company: initCompany, branch: initBranch } = getInitialParams();
+  const { mode: initMode, table: initTable, company: initCompany, branch: initBranch, initialView } = getInitialParams();
 
   const [companyCode, setCompanyCode] = useState(initCompany);
   const [branchCode, setBranchCode] = useState(initBranch);
@@ -46,8 +51,8 @@ export const AppProvider = ({ children }) => {
   // Active tracking order
   const [activeOrderId, setActiveOrderId] = useState(null);
 
-  // View modes: 'customer' | 'kitchen' | 'qr_generator'
-  const [viewMode, setViewMode] = useState('customer');
+  // View modes: 'landing' | 'customer' | 'kitchen'
+  const [viewMode, setViewMode] = useState(initialView);
 
   // Kitchen / Global orders synced via localStorage and events
   const [kitchenOrders, setKitchenOrders] = useState(() => {

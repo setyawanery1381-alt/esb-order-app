@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { RESTAURANT_INFO } from '../data/menuData';
+import logoSvg from '../assets/restaurant-logo.svg';
 import { 
   UtensilsCrossed, 
   BellRing, 
@@ -12,7 +13,9 @@ import {
   MapPin,
   Clock,
   ChevronDown,
-  Cloud
+  Cloud,
+  Home,
+  Camera
 } from 'lucide-react';
 
 export const Header = ({ 
@@ -21,7 +24,8 @@ export const Header = ({
   onOpenCallWaiter, 
   onOpenQRCode,
   onOpenStockAdmin,
-  onOpenFirebase
+  onOpenFirebase,
+  onOpenScanner
 }) => {
   const { 
     companyCode,
@@ -80,6 +84,15 @@ export const Header = ({
         {/* View Switchers for Demo & Staff */}
         <div className="flex items-center space-x-1 sm:space-x-2">
           <button
+            onClick={() => setViewMode('landing')}
+            className="flex items-center space-x-1 px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded transition"
+            title="Kembali ke Dashboard Beranda Restoran"
+          >
+            <Home className="w-3.5 h-3.5 text-primary" />
+            <span className="hidden xs:inline">Beranda</span>
+          </button>
+
+          <button
             onClick={() => setViewMode(viewMode === 'customer' ? 'kitchen' : 'customer')}
             className={`flex items-center space-x-1 px-2 py-0.5 rounded transition ${
               viewMode === 'kitchen' 
@@ -129,9 +142,17 @@ export const Header = ({
       <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
         {/* Brand & Outlet Dropdown */}
         <div className="flex items-center space-x-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white shadow-md flex-shrink-0">
-            <UtensilsCrossed className="w-5 h-5" />
-          </div>
+          <button 
+            onClick={() => setViewMode('landing')}
+            className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 hover:scale-105 transition-transform drop-shadow-sm bg-neutral-50 p-1 border border-neutral-200"
+            title="Kembali ke Beranda Restoran"
+          >
+            <img 
+              src={logoSvg} 
+              alt={RESTAURANT_INFO.name} 
+              className="w-full h-full object-contain"
+            />
+          </button>
           <div className="min-w-0">
             <button 
               onClick={() => setShowOutletInfo(!showOutletInfo)}
@@ -176,7 +197,7 @@ export const Header = ({
 
           {/* Table Number Badge */}
           {orderMode === 'dinein' && (
-            <div>
+            <div className="flex items-center space-x-1">
               {isEditingTable ? (
                 <form onSubmit={handleTableSave} className="flex items-center">
                   <input
@@ -201,6 +222,14 @@ export const Header = ({
                   <span>Meja {tableNumber}</span>
                 </button>
               )}
+
+              <button
+                onClick={onOpenScanner}
+                className="p-1.5 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-primary transition"
+                title="Pindai / Ganti Barcode QR Meja"
+              >
+                <Camera className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
 

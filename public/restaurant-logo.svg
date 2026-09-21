@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A3D" />
+      <stop offset="100%" stop-color="#F05A28" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBD38D" />
+      <stop offset="100%" stop-color="#D69E2E" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#F05A28" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Outer Rounded Shield -->
+  <rect x="20" y="20" width="200" height="200" rx="48" fill="url(#primaryGrad)" filter="url(#shadow)" />
+  <rect x="23" y="23" width="194" height="194" rx="45" stroke="url(#goldGrad)" stroke-width="2" stroke-opacity="0.6" stroke-dasharray="6 4" />
+
+  <!-- Inner Dark Center Badge -->
+  <circle cx="120" cy="120" r="76" fill="#1C1917" />
+  <circle cx="120" cy="120" r="72" stroke="url(#goldGrad)" stroke-width="1.5" stroke-opacity="0.4" />
+
+  <!-- Chef Cloche / Dome -->
+  <path d="M120 70 A 38 38 0 0 1 158 108 L 82 108 A 38 38 0 0 1 120 70 Z" fill="url(#goldGrad)" />
+  <!-- Cloche Handle -->
+  <circle cx="120" cy="65" r="7" fill="url(#goldGrad)" />
+  <!-- Cloche Tray Base -->
+  <rect x="74" y="112" width="92" height="6" rx="3" fill="url(#goldGrad)" />
+
+  <!-- Crossed Fork & Spoon with Steaming Aromas -->
+  <!-- Steam lines -->
+  <path d="M110 52 Q 106 44 112 36" stroke="#FBD38D" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.85" />
+  <path d="M120 50 Q 124 40 120 32" stroke="#FBD38D" stroke-width="2.5" stroke-linecap="round" fill="none" />
+  <path d="M130 52 Q 134 44 128 36" stroke="#FBD38D" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.85" />
+
+  <!-- Spoon Left -->
+  <path d="M96 130 Q 90 142 98 152 L 118 174 C 120 176 122 176 123 174 L 126 171 C 127 169 127 167 125 165 L 105 143 Q 102 135 96 130 Z" fill="#FFF" />
+  
+  <!-- Fork Right -->
+  <path d="M144 130 L 140 146 L 120 171 C 119 173 117 173 115 171 L 112 168 C 111 166 111 164 113 162 L 133 138 L 130 130 Z" fill="#FFF" />
+
+  <!-- Stars -->
+  <path d="M120 126 L 122 131 L 127 131 L 123 134 L 125 139 L 120 136 L 115 139 L 117 134 L 113 131 L 118 131 Z" fill="url(#goldGrad)" />
+
+  <!-- Bottom Ribbon / Emblem Text -->
+  <path d="M50 188 Q 120 206 190 188 L 184 176 Q 120 192 56 176 Z" fill="#F05A28" />
+  <text x="120" y="190" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="11" fill="#FFFFFF" letter-spacing="2">RASA NUSANTARA</text>
+  <text x="120" y="148" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="800" font-size="8" fill="#FBD38D" letter-spacing="1">AUTHENTIC FOOD</text>
+</svg>
