@@ -11,7 +11,8 @@ import {
   SlidersHorizontal,
   MapPin,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Cloud
 } from 'lucide-react';
 
 export const Header = ({ 
@@ -19,7 +20,8 @@ export const Header = ({
   setSearchQuery, 
   onOpenCallWaiter, 
   onOpenQRCode,
-  onOpenStockAdmin 
+  onOpenStockAdmin,
+  onOpenFirebase
 }) => {
   const { 
     companyCode,
@@ -31,7 +33,8 @@ export const Header = ({
     viewMode,
     setViewMode,
     waiterCalls,
-    currentTableOrder
+    currentTableOrder,
+    isFirebaseOnline
   } = useApp();
 
   const [isEditingTable, setIsEditingTable] = useState(false);
@@ -105,6 +108,19 @@ export const Header = ({
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden xs:inline">Stok</span>
+          </button>
+
+          <button
+            onClick={onOpenFirebase}
+            className={`flex items-center space-x-1 px-2 py-0.5 rounded transition ${
+              isFirebaseOnline 
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white font-bold' 
+                : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-200'
+            }`}
+            title="Pengaturan Firebase Firestore (Cloud Sync)"
+          >
+            <Cloud className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">{isFirebaseOnline ? 'Cloud ON' : 'Firebase'}</span>
           </button>
         </div>
       </div>

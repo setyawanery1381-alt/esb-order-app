@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MENU_ITEMS, RESTAURANT_INFO } from '../data/menuData';
+import { 
+  saveOrderToFirestore, 
+  updateOrderStatusInFirestore, 
+  saveWaiterCallToFirestore, 
+  resolveWaiterCallInFirestore, 
+  subscribeToOrders, 
+  subscribeToWaiterCalls,
+  isFirebaseActive 
+} from '../services/firebase';
 
 const AppContext = createContext();
 
@@ -147,6 +156,34 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Real-time Firestore Cloud listener (sync across HP & Laptop worldwide)
+  useEffect(() => {
+    if (!isFirebaseActive()) return;
+
+    const unsubOrders = subscribeToOrders((cloudOrders) => {
+      if (cloudOrders && cloudOrders.length > 0) {
+        setKitchenOrders(cloudOrders);
+        try {
+          localStorage.setItem(STORAGE_ORDERS_KEY, JSON.stringify(cloudOrders));
+        } catch (e) {}
+      }
+    });
+
+    const unsubWaiters = subscribeToWaiterCalls((cloudCalls) => {
+      if (cloudCalls && cloudCalls.length > 0) {
+        setWaiterCalls(cloudCalls);
+        try {
+          localStorage.setItem(STORAGE_WAITER_KEY, JSON.stringify(cloudCalls));
+        } catch (e) {}
+      }
+    });
+
+    return () => {
+      if (unsubOrders) unsubOrders();
+      if (unsubWaiters) unsubWaiters();
+    };
+  }, []);
+
   // Add item to cart
   const addToCart = (item, selectedModifiers, notes, quantity) => {
     // Calculate total unit price including modifiers
@@ -240,6 +277,12 @@ export const AppProvider = ({ children }) => {
     setActiveOrderId(orderId);
     clearCart();
     broadcast('NEW_ORDER', updated);
+
+    // Sync to Firebase Cloud Firestore
+    if (isFirebaseActive()) {
+      saveOrderToFirestore(newOrder);
+    }
+
     return newOrder;
   };
 
@@ -258,6 +301,11 @@ export const AppProvider = ({ children }) => {
       console.warn('localStorage error', e);
     }
     broadcast('UPDATE_ORDER_STATUS', updated);
+
+    // Sync to Firebase Cloud Firestore
+    if (isFirebaseActive()) {
+      updateOrderStatusInFirestore(orderId, newStatus);
+    }
   };
 
   // Call Waiter
@@ -277,6 +325,12 @@ export const AppProvider = ({ children }) => {
       console.warn('localStorage error', e);
     }
     broadcast('WAITER_CALL', updated);
+
+    // Sync to Firebase Cloud Firestore
+    if (isFirebaseActive()) {
+      saveWaiterCallToFirestore(newCall);
+    }
+
     return newCall;
   };
 
@@ -290,6 +344,11 @@ export const AppProvider = ({ children }) => {
       console.warn('localStorage error', e);
     }
     broadcast('RESOLVE_WAITER_CALL', updated);
+
+    // Sync to Firebase Cloud Firestore
+    if (isFirebaseActive()) {
+      resolveWaiterCallInFirestore(callId);
+    }
   };
 
   // Toggle Out of Stock
@@ -348,6 +407,7 @@ export const AppProvider = ({ children }) => {
         toggleItemStock,
         viewMode,
         setViewMode,
+        isFirebaseOnline: isFirebaseActive(),
       }}
     >
       {children}

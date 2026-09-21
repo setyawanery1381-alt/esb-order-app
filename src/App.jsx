@@ -13,11 +13,12 @@ import { CallWaiterModal } from './components/CallWaiterModal';
 import { KitchenDisplay } from './components/KitchenDisplay';
 import { QRCodeModal } from './components/QRCodeModal';
 import { AdminMenuModal } from './components/AdminMenuModal';
+import { FirebaseModal } from './components/FirebaseModal';
 import { MENU_ITEMS, CATEGORIES } from './data/menuData';
 import { Sparkles, Utensils } from 'lucide-react';
 
 export const App = () => {
-  const { viewMode, currentTableOrder, totalCartCount } = useApp();
+  const { viewMode, currentTableOrder, totalCartCount, submitOrder } = useApp();
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +31,7 @@ export const App = () => {
   const [isCallWaiterOpen, setIsCallWaiterOpen] = useState(false);
   const [isQRCodeOpen, setIsQRCodeOpen] = useState(false);
   const [isStockAdminOpen, setIsStockAdminOpen] = useState(false);
+  const [isFirebaseOpen, setIsFirebaseOpen] = useState(false);
 
   // If in Kitchen / POS view mode, render KitchenDisplay
   if (viewMode === 'kitchen') {
@@ -62,6 +64,7 @@ export const App = () => {
           onOpenCallWaiter={() => setIsCallWaiterOpen(true)}
           onOpenQRCode={() => setIsQRCodeOpen(true)}
           onOpenStockAdmin={() => setIsStockAdminOpen(true)}
+          onOpenFirebase={() => setIsFirebaseOpen(true)}
         />
 
         {/* Promo Carousel (only when not searching) */}
@@ -194,6 +197,12 @@ export const App = () => {
         <AdminMenuModal
           isOpen={isStockAdminOpen}
           onClose={() => setIsStockAdminOpen(false)}
+        />
+
+        {/* Firebase Firestore Cloud Modal */}
+        <FirebaseModal
+          isOpen={isFirebaseOpen}
+          onClose={() => setIsFirebaseOpen(false)}
         />
       </div>
     </div>
