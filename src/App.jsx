@@ -16,11 +16,11 @@ import { AdminMenuModal } from './components/AdminMenuModal';
 import { FirebaseModal } from './components/FirebaseModal';
 import { LandingDashboard } from './components/LandingDashboard';
 import { QRScannerModal } from './components/QRScannerModal';
-import { MENU_ITEMS, CATEGORIES } from './data/menuData';
+import { CATEGORIES } from './data/menuData';
 import { Sparkles, Utensils } from 'lucide-react';
 
 export const App = () => {
-  const { viewMode, currentTableOrder, totalCartCount, submitOrder } = useApp();
+  const { viewMode, currentTableOrder, totalCartCount, submitOrder, menuItems } = useApp();
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,6 +52,7 @@ export const App = () => {
           }}
           onOpenQRCode={() => setIsQRCodeOpen(true)}
           onOpenFirebase={() => setIsFirebaseOpen(true)}
+          onOpenStockAdmin={() => setIsStockAdminOpen(true)}
         />
         <QRScannerModal
           isOpen={isScannerOpen}
@@ -66,6 +67,10 @@ export const App = () => {
           isOpen={isFirebaseOpen}
           onClose={() => setIsFirebaseOpen(false)}
         />
+        <AdminMenuModal
+          isOpen={isStockAdminOpen}
+          onClose={() => setIsStockAdminOpen(false)}
+        />
       </>
     );
   }
@@ -76,7 +81,7 @@ export const App = () => {
   }
 
   // Filter menu items based on category and search query
-  const filteredItems = MENU_ITEMS.filter((item) => {
+  const filteredItems = menuItems.filter((item) => {
     const matchesSearch = 
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -127,9 +132,19 @@ export const App = () => {
                   : CATEGORIES.find((c) => c.id === activeCategory)?.name || 'Daftar Menu'}
               </span>
             </h2>
-            <span className="text-xs text-neutral-500 font-medium">
-              {filteredItems.length} menu tersedia
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-neutral-500 font-medium hidden xs:inline">
+                {filteredItems.length} menu tersedia
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsStockAdminOpen(true)}
+                className="px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-primary border border-orange-200 rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-2xs"
+                title="Kelola & Edit Menu Makanan"
+              >
+                <span>✏️ Edit Menu</span>
+              </button>
+            </div>
           </div>
 
           {/* Menu Grid / List */}

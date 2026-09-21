@@ -18,13 +18,14 @@ import {
   ArrowRight,
   ChefHat,
   ShieldCheck,
-  Utensils
+  Utensils,
+  UtensilsCrossed
 } from 'lucide-react';
 
-export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase, onOpenTableInput }) => {
-  const { setViewMode, setOrderMode, setTableNumber, isFirebaseOnline } = useApp();
+export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase, onOpenTableInput, onOpenStockAdmin }) => {
+  const { setViewMode, setOrderMode, setTableNumber, isFirebaseOnline, menuItems } = useApp();
 
-  const signatureItems = MENU_ITEMS.filter((item) => item.isBestSeller).slice(0, 4);
+  const signatureItems = (menuItems || []).filter((item) => item.isBestSeller).slice(0, 4);
 
   const handleTakeaway = () => {
     setOrderMode('takeaway');
@@ -58,6 +59,18 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase, 
               <ChefHat className="w-3.5 h-3.5 text-amber-400" />
               <span>Layar Dapur</span>
             </button>
+
+            {onOpenStockAdmin && (
+              <button
+                onClick={onOpenStockAdmin}
+                className="flex items-center space-x-1 px-2.5 py-1 bg-orange-600/30 hover:bg-orange-600/50 text-orange-200 border border-orange-500/40 rounded-xl font-bold transition text-xs"
+                title="Kelola & Edit Menu Makanan"
+              >
+                <UtensilsCrossed className="w-3.5 h-3.5 text-orange-400" />
+                <span className="hidden sm:inline">Edit Menu</span>
+                <span className="sm:hidden">Menu</span>
+              </button>
+            )}
 
             <button
               onClick={onOpenQRCode}

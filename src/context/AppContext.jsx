@@ -15,6 +15,7 @@ const AppContext = createContext();
 const STORAGE_ORDERS_KEY = 'esb_kitchen_orders';
 const STORAGE_WAITER_KEY = 'esb_waiter_calls';
 const STORAGE_STOCK_KEY = 'esb_menu_stock';
+const STORAGE_MENU_KEY = 'esb_restaurant_menu';
 
 export const AppProvider = ({ children }) => {
   // Parse URL query parameters & path: /CPBS/RRGW/order?mode=dinein&tableNumber=38
@@ -84,6 +85,20 @@ export const AppProvider = ({ children }) => {
     }
   });
 
+  // Custom/Editable Restaurant Menu Items
+  const [menuItems, setMenuItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_MENU_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved menu', e);
+    }
+    return MENU_ITEMS;
+  });
+
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_ORDERS_KEY, JSON.stringify(kitchenOrders));
@@ -96,6 +111,10 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem(STORAGE_STOCK_KEY, JSON.stringify(outOfStockIds));
   }, [outOfStockIds]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_MENU_KEY, JSON.stringify(menuItems));
+  }, [menuItems]);
 
   // Listen to cross-tab updates via storage event & BroadcastChannel
   useEffect(() => {
@@ -125,6 +144,13 @@ export const AppProvider = ({ children }) => {
             const saved = localStorage.getItem(STORAGE_STOCK_KEY);
             if (saved) setOutOfStockIds(JSON.parse(saved));
           }
+        } else if (type === 'SYNC_MENU') {
+          if (payload && Array.isArray(payload)) {
+            setMenuItems(payload);
+          } else {
+            const saved = localStorage.getItem(STORAGE_MENU_KEY);
+            if (saved) setMenuItems(JSON.parse(saved));
+          }
         }
       };
     } catch (e) {
@@ -138,6 +164,8 @@ export const AppProvider = ({ children }) => {
         setWaiterCalls(JSON.parse(e.newValue));
       } else if (e.key === STORAGE_STOCK_KEY && e.newValue) {
         setOutOfStockIds(JSON.parse(e.newValue));
+      } else if (e.key === STORAGE_MENU_KEY && e.newValue) {
+        setMenuItems(JSON.parse(e.newValue));
       }
     };
 
@@ -371,6 +399,67 @@ export const AppProvider = ({ children }) => {
     });
   };
 
+  // Save & Broadcast updated menu list
+  const saveMenuItems = (updatedList) => {
+    setMenuItems(updatedList);
+    try {
+      localStorage.setItem(STORAGE_MENU_KEY, JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('localStorage menu error', e);
+    }
+    broadcast('SYNC_MENU', updatedList);
+  };
+
+  // Add new food item to restaurant catalog
+  const addMenuItem = (newItem) => {
+    const id = `menu-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const item = {
+      id,
+      name: newItem.name?.trim() || 'Menu Baru',
+      category: newItem.category || 'makanan',
+      subcategories: newItem.subcategories || [],
+      price: Number(newItem.price) || 0,
+      originalPrice: newItem.originalPrice ? Number(newItem.originalPrice) : null,
+      rating: 5.0,
+      reviewCount: 0,
+      description: newItem.description?.trim() || '',
+      image: newItem.image?.trim() || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+      isBestSeller: Boolean(newItem.isBestSeller),
+      isPromo: Boolean(newItem.isPromo),
+      modifierGroups: newItem.modifierGroups || [],
+    };
+    const updated = [item, ...menuItems];
+    saveMenuItems(updated);
+    return item;
+  };
+
+  // Update existing food item
+  const updateMenuItem = (id, updatedFields) => {
+    const updated = menuItems.map((item) => {
+      if (item.id === id) {
+        return {
+          ...item,
+          ...updatedFields,
+          price: updatedFields.price !== undefined ? Number(updatedFields.price) : item.price,
+          originalPrice: updatedFields.originalPrice !== undefined ? (updatedFields.originalPrice ? Number(updatedFields.originalPrice) : null) : item.originalPrice,
+        };
+      }
+      return item;
+    });
+    saveMenuItems(updated);
+  };
+
+  // Delete food item
+  const deleteMenuItem = (id) => {
+    const updated = menuItems.filter((item) => item.id !== id);
+    saveMenuItems(updated);
+  };
+
+  // Reset menu back to restaurant default catalog
+  const resetMenuToDefault = () => {
+    saveMenuItems(MENU_ITEMS);
+  };
+
   // Find active order for this table
   const currentTableOrder = kitchenOrders.find(
     ord => ord.orderId === activeOrderId || (ord.tableNumber === tableNumber && ord.orderStatus !== 'COMPLETED')
@@ -410,6 +499,11 @@ export const AppProvider = ({ children }) => {
         resolveWaiterCall,
         outOfStockIds,
         toggleItemStock,
+        menuItems,
+        addMenuItem,
+        updateMenuItem,
+        deleteMenuItem,
+        resetMenuToDefault,
         viewMode,
         setViewMode,
         isFirebaseOnline: isFirebaseActive(),
