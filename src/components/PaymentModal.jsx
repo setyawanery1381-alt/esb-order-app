@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatIDR } from '../utils/format';
+import { getDynamicQRISDataURL } from '../utils/qris';
 import { 
   X, 
   QrCode, 
@@ -10,7 +11,10 @@ import {
   Building2, 
   Copy, 
   Check, 
-  Sparkles
+  Sparkles,
+  Zap,
+  Download,
+  Image as ImageIcon
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import qrisSampleImg from '../assets/qris-sangcreator.jpg';
@@ -26,9 +30,25 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
   } = useApp();
 
   const [paymentMethod, setPaymentMethod] = useState('QRIS'); // 'QRIS' | 'CASHIER'
+  const [qrisViewType, setQrisViewType] = useState('dynamic'); // 'dynamic' | 'stand'
+  const [dynamicQrUrl, setDynamicQrUrl] = useState('');
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const payableAmount = cart.length > 0 ? cartGrandTotal : (currentTableOrder?.grandTotal || 0);
+
+  // Generate dynamic QRIS with exact amount when modal opens
+  useEffect(() => {
+    if (!isOpen || payableAmount <= 0) return;
+    let isMounted = true;
+    getDynamicQRISDataURL(payableAmount).then((url) => {
+      if (isMounted && url) {
+        setDynamicQrUrl(url);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [isOpen, payableAmount]);
 
   // Timer countdown for QRIS
   useEffect(() => {
@@ -46,8 +66,6 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-  const payableAmount = cart.length > 0 ? cartGrandTotal : (currentTableOrder?.grandTotal || 0);
 
   const handleCopyAmount = () => {
     try {
@@ -91,7 +109,7 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
       <div 
         className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[94vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 duration-300"
         onClick={(e) => e.stopPropagation()}
@@ -100,12 +118,12 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
         <div className="p-4 border-b border-neutral-200 bg-neutral-50/90">
           <div className="flex items-center justify-between">
             <div>
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold mb-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Pembayaran Pesanan</span>
+              <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[11px] font-bold mb-1">
+                <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
+                <span>QRIS Dinamis Otomatis</span>
               </div>
               <h3 className="font-extrabold text-neutral-900 text-lg leading-tight">
-                Pilih Pembayaran
+                Pembayaran Tagihan
               </h3>
               <p className="text-xs text-neutral-500">
                 {orderMode === 'dinein' ? (tableNumber ? `Meja ${tableNumber}` : 'Dine In') : 'Takeaway'} • Total Tagihan: <b className="text-neutral-800">{formatIDR(payableAmount)}</b>
@@ -138,8 +156,8 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
                 <QrCode className="w-5 h-5" />
               </div>
               <div className="text-center">
-                <span className="text-xs block font-bold">QRIS Digital</span>
-                <span className="text-[10px] text-neutral-500 font-normal">Semua Bank & E-Wallet</span>
+                <span className="text-xs block font-bold">QRIS Dinamis</span>
+                <span className="text-[10px] text-neutral-500 font-normal">Nominal Otomatis Terisi</span>
               </div>
             </button>
 
@@ -181,45 +199,108 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
                 </div>
               </div>
 
-              {/* Total Payable Box with Copy Button */}
-              <div className="bg-white rounded-xl p-3 border border-neutral-200 shadow-2xs flex items-center justify-between">
-                <div className="text-left">
-                  <span className="text-[11px] text-neutral-500 block">Total Pembayaran:</span>
-                  <span className="text-lg font-black text-primary">
-                    {formatIDR(payableAmount)}
-                  </span>
-                </div>
+              {/* View Switcher: Dynamic QR (with auto amount) vs Original Stand Photo */}
+              <div className="flex items-center justify-center p-1 bg-neutral-200/80 rounded-xl text-xs gap-1">
                 <button
                   type="button"
-                  onClick={handleCopyAmount}
-                  className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold rounded-lg flex items-center space-x-1.5 transition active:scale-95"
-                  title="Salin nominal untuk m-Banking"
+                  onClick={() => setQrisViewType('dynamic')}
+                  className={`flex-1 py-1.5 px-3 rounded-lg font-bold flex items-center justify-center space-x-1 transition ${
+                    qrisViewType === 'dynamic'
+                      ? 'bg-white text-emerald-700 shadow-xs'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
                 >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-emerald-700">Tersalin!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-neutral-500" />
-                      <span>Salin Nominal</span>
-                    </>
-                  )}
+                  <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
+                  <span>QRIS Dinamis (Nominal Otomatis)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQrisViewType('stand')}
+                  className={`py-1.5 px-3 rounded-lg font-medium flex items-center justify-center space-x-1 transition ${
+                    qrisViewType === 'stand'
+                      ? 'bg-white text-primary shadow-xs font-bold'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Foto Stand</span>
                 </button>
               </div>
 
-              {/* Official QRIS Stand Image */}
-              <div className="bg-white p-2.5 rounded-2xl border border-neutral-200 shadow-inner flex flex-col items-center">
-                <img
-                  src={qrisSampleImg}
-                  alt="QRIS Stand SANGCREATOR DIGITAL"
-                  className="w-full max-w-[310px] h-auto rounded-xl object-contain shadow-sm border border-neutral-100"
-                />
-                <span className="text-[10px] text-neutral-400 mt-2 font-mono">
-                  Scan kode QRIS di atas dengan m-Banking / e-Wallet Anda
-                </span>
-              </div>
+              {/* Dynamic QR Display (With Amount Embedded) */}
+              {qrisViewType === 'dynamic' ? (
+                <div className="bg-white p-4 rounded-2xl border border-neutral-200 shadow-md flex flex-col items-center space-y-3">
+                  {/* Highlighting auto-amount feature */}
+                  <div className="w-full bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 text-emerald-800 text-xs">
+                    <div className="flex items-center justify-center space-x-1.5 font-extrabold text-sm text-emerald-900">
+                      <Zap className="w-4 h-4 text-emerald-600 fill-emerald-600" />
+                      <span>Nominal Otomatis Terisi: {formatIDR(payableAmount)}</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700 mt-0.5 font-medium">
+                      Saat di-scan di m-Banking / e-Wallet, nominal langsung terisi tanpa perlu ketik manual!
+                    </p>
+                  </div>
+
+                  {/* QR Code */}
+                  <div className="relative p-2 bg-white rounded-xl border border-neutral-100 shadow-inner">
+                    {dynamicQrUrl ? (
+                      <img
+                        src={dynamicQrUrl}
+                        alt="QRIS Dinamis SANGCREATOR DIGITAL"
+                        className="w-56 h-56 mx-auto object-contain"
+                      />
+                    ) : (
+                      <div className="w-56 h-56 flex items-center justify-center">
+                        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action buttons under QR: Download & Copy fallback */}
+                  <div className="flex items-center gap-2 pt-1">
+                    {dynamicQrUrl && (
+                      <a
+                        href={dynamicQrUrl}
+                        download={`QRIS-SANGCREATOR-${payableAmount}.png`}
+                        className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold rounded-lg flex items-center space-x-1.5 transition active:scale-95"
+                        title="Simpan gambar QR ke galeri HP untuk di-scan lewat aplikasi perbankan"
+                      >
+                        <Download className="w-3.5 h-3.5 text-neutral-600" />
+                        <span>Simpan Gambar QR</span>
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleCopyAmount}
+                      className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold rounded-lg flex items-center space-x-1.5 transition active:scale-95"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-emerald-700">Tersalin!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-neutral-500" />
+                          <span>Salin Nominal</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Stand Photo Display */
+                <div className="bg-white p-2.5 rounded-2xl border border-neutral-200 shadow-inner flex flex-col items-center">
+                  <img
+                    src={qrisSampleImg}
+                    alt="QRIS Stand SANGCREATOR DIGITAL"
+                    className="w-full max-w-[300px] h-auto rounded-xl object-contain shadow-sm border border-neutral-100"
+                  />
+                  <div className="w-full mt-2 bg-amber-50 border border-amber-200 rounded-xl p-2 text-xs text-amber-800 text-left">
+                    <span>Total tagihan: <b>{formatIDR(payableAmount)}</b>. Pada QR stand fisik, ketik nominal ini di m-Banking Anda.</span>
+                  </div>
+                </div>
+              )}
 
               {/* Supported Wallets / Banks Badges */}
               <div className="text-[11px] text-neutral-500 font-medium space-y-1">
@@ -237,28 +318,28 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
               </div>
 
               {/* Step by Step instructions */}
-              <div className="bg-amber-50/80 rounded-xl p-3 border border-amber-200/80 text-left space-y-1.5 text-xs text-neutral-700">
+              <div className="bg-emerald-50/70 rounded-xl p-3 border border-emerald-200 text-left space-y-1.5 text-xs text-neutral-700">
                 <div className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                  <p>Buka m-Banking atau E-Wallet Anda lalu scan QRIS di atas.</p>
+                  <span className="w-4 h-4 rounded-full bg-emerald-200 text-emerald-900 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <p>Buka m-Banking (BCA, Mandiri, BRI) atau E-Wallet (GoPay, OVO, DANA).</p>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                  <p>Masukkan nominal sesuai total tagihan (<b>{formatIDR(payableAmount)}</b>).</p>
+                  <span className="w-4 h-4 rounded-full bg-emerald-200 text-emerald-900 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <p>Pindai kode QRIS di atas. <b>Nominal {formatIDR(payableAmount)} akan langsung terisi otomatis</b> di layar HP Anda.</p>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                  <p>Setelah pembayaran berhasil, klik tombol <b>"Saya Sudah Bayar via QRIS"</b> di bawah.</p>
+                  <span className="w-4 h-4 rounded-full bg-emerald-200 text-emerald-900 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <p>Konfirmasi pembayaran dengan PIN / Sidik Jari Anda di aplikasi m-Banking.</p>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-200 text-emerald-900 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
-                  <p className="text-emerald-800 font-medium">Pesanan Anda akan <b>langsung masuk ke dapur dan kasir</b> untuk segera disiapkan!</p>
+                  <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                  <p className="text-emerald-900 font-bold">Tekan tombol <b>"Saya Sudah Bayar via QRIS"</b> di bawah untuk langsung mengirim pesanan ke dapur!</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-center space-x-1.5 text-[11px] text-emerald-600 font-semibold">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Standar Pembayaran Nasional QRIS Resmi BI & ASPI</span>
+                <span>QRIS Dinamis Standar Bank Indonesia & ASPI (EMVCo Certified)</span>
               </div>
             </div>
           )}
