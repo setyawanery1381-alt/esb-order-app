@@ -21,20 +21,10 @@ import {
   Utensils
 } from 'lucide-react';
 
-export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }) => {
+export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase, onOpenTableInput }) => {
   const { setViewMode, setOrderMode, setTableNumber, isFirebaseOnline } = useApp();
 
   const signatureItems = MENU_ITEMS.filter((item) => item.isBestSeller).slice(0, 4);
-
-  const handleQuickDineIn = (tableNum = '38') => {
-    setTableNumber(String(tableNum));
-    setOrderMode('dinein');
-    setViewMode('customer');
-    const url = new URL(window.location);
-    url.searchParams.set('mode', 'dinein');
-    url.searchParams.set('tableNumber', String(tableNum));
-    window.history.replaceState({}, '', url);
-  };
 
   const handleTakeaway = () => {
     setOrderMode('takeaway');
@@ -71,11 +61,12 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }
 
             <button
               onClick={onOpenQRCode}
-              className="flex items-center space-x-1 px-3 py-1 bg-orange-600/30 hover:bg-orange-600/50 text-orange-200 border border-orange-500/40 rounded-xl font-bold transition shadow-xs"
-              title="Buat & Tampilkan Barcode / QR Code Menu Meja"
+              className="flex items-center space-x-1 px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl font-medium transition text-xs"
+              title="Khusus Admin Resto: Cetak stiker QR meja untuk ditempel di meja fisik"
             >
               <QrCode className="w-3.5 h-3.5 text-orange-400" />
-              <span>Barcode Menu</span>
+              <span className="hidden sm:inline">Cetak QR Meja (Admin)</span>
+              <span className="sm:hidden">QR Admin</span>
             </button>
 
             <button
@@ -129,7 +120,7 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }
           <div className="pt-2 space-y-2.5 max-w-md mx-auto">
             {/* Main Primary Button: Scan QR Barcode */}
             <button
-              onClick={onOpenScanner}
+              onClick={() => onOpenScanner ? onOpenScanner('camera') : null}
               className="w-full py-4 px-6 bg-gradient-to-r from-primary to-orange-500 hover:from-primary-hover hover:to-orange-600 active:scale-[0.99] text-white font-black rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center space-x-3 text-base sm:text-lg transition-all group"
             >
               <div className="p-1.5 bg-white/20 rounded-xl group-hover:scale-110 transition-transform">
@@ -139,28 +130,19 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }
               <ArrowRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
             </button>
 
-            {/* Quick Button: Tampilkan Barcode Menu di Layar */}
-            <button
-              onClick={onOpenQRCode}
-              className="w-full py-3 px-4 bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/40 active:scale-[0.99] rounded-xl text-xs sm:text-sm font-bold text-orange-300 flex items-center justify-center space-x-2 transition"
-            >
-              <QrCode className="w-4 h-4 text-orange-400" />
-              <span>Tampilkan Barcode Menu di Layar (Siap Scan HP)</span>
-            </button>
-
-            {/* Secondary Option: Direct Table 38 or Takeaway */}
+            {/* Secondary Option: Masukkan No. Meja or Takeaway */}
             <div className="grid grid-cols-2 gap-2.5">
               <button
-                onClick={() => handleQuickDineIn('38')}
-                className="py-3 px-3.5 bg-neutral-800/90 hover:bg-neutral-700/90 border border-neutral-700/80 rounded-xl text-xs sm:text-sm font-bold text-neutral-200 flex items-center justify-center space-x-2 transition"
+                onClick={() => onOpenTableInput ? onOpenTableInput() : onOpenScanner('picker')}
+                className="py-3 px-3.5 bg-neutral-800/90 hover:bg-neutral-700/90 border border-neutral-700/80 active:scale-[0.99] rounded-xl text-xs sm:text-sm font-bold text-neutral-200 flex items-center justify-center space-x-2 transition hover:border-primary/50"
               >
                 <Utensils className="w-4 h-4 text-primary" />
-                <span>Masuk Meja 38</span>
+                <span>Masukkan No. Meja</span>
               </button>
 
               <button
                 onClick={handleTakeaway}
-                className="py-3 px-3.5 bg-neutral-800/90 hover:bg-neutral-700/90 border border-neutral-700/80 rounded-xl text-xs sm:text-sm font-bold text-neutral-200 flex items-center justify-center space-x-2 transition"
+                className="py-3 px-3.5 bg-neutral-800/90 hover:bg-neutral-700/90 border border-neutral-700/80 active:scale-[0.99] rounded-xl text-xs sm:text-sm font-bold text-neutral-200 flex items-center justify-center space-x-2 transition hover:border-amber-400/50"
               >
                 <ShoppingBag className="w-4 h-4 text-amber-400" />
                 <span>Pesan Takeaway</span>

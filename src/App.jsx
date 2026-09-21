@@ -35,18 +35,27 @@ export const App = () => {
   const [isStockAdminOpen, setIsStockAdminOpen] = useState(false);
   const [isFirebaseOpen, setIsFirebaseOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannerInitialTab, setScannerInitialTab] = useState('picker');
 
   // If in Landing Dashboard mode, render LandingDashboard
   if (viewMode === 'landing') {
     return (
       <>
         <LandingDashboard
-          onOpenScanner={() => setIsScannerOpen(true)}
+          onOpenScanner={(tab = 'camera') => {
+            setScannerInitialTab(tab);
+            setIsScannerOpen(true);
+          }}
+          onOpenTableInput={() => {
+            setScannerInitialTab('picker');
+            setIsScannerOpen(true);
+          }}
           onOpenQRCode={() => setIsQRCodeOpen(true)}
           onOpenFirebase={() => setIsFirebaseOpen(true)}
         />
         <QRScannerModal
           isOpen={isScannerOpen}
+          initialTab={scannerInitialTab}
           onClose={() => setIsScannerOpen(false)}
         />
         <QRCodeModal
@@ -237,6 +246,7 @@ export const App = () => {
         {/* Barcode / QR Table Scanner Modal */}
         <QRScannerModal
           isOpen={isScannerOpen}
+          initialTab={scannerInitialTab}
           onClose={() => setIsScannerOpen(false)}
         />
       </div>

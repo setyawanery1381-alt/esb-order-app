@@ -28,30 +28,23 @@ export const QRCodeModal = ({ isOpen, onClose }) => {
   const [selectedTable, setSelectedTable] = useState(tableNumber || '38');
   const [mode, setMode] = useState('dinein'); // 'dinein' | 'takeaway'
   const [activeTab, setActiveTab] = useState('tentcard'); // 'tentcard' | 'qr' | 'barcode'
-  const [hostType, setHostType] = useState('network'); // 'network' | 'auto' | 'custom'
-  const [customHost, setCustomHost] = useState('https://esb-order-app.vercel.app');
+  
+  // Default to live Vercel domain so physical table stickers open live app
+  const defaultHost = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
+    ? window.location.origin
+    : 'https://esb-order-app.vercel.app';
+  const [vercelDomain, setVercelDomain] = useState(defaultHost);
+  const [isEditingDomain, setIsEditingDomain] = useState(false);
+
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   
   const barcodeSvgRef = useRef(null);
 
-  // Determine base host
-  const getBaseHost = () => {
-    if (hostType === 'network') {
-      // Local IP for immediate testing via phone on same WiFi
-      return 'http://192.168.1.11:5173';
-    }
-    if (hostType === 'custom') {
-      return customHost.replace(/\/+$/, '');
-    }
-    // Auto: current browser origin
-    return window.location.origin;
-  };
-
-  // Build target URL
+  // Build target URL (Vercel Live)
   const targetUrl = mode === 'dinein'
-    ? `${getBaseHost()}/?mode=dinein&tableNumber=${selectedTable}`
-    : `${getBaseHost()}/?mode=takeaway`;
+    ? `${vercelDomain.replace(/\/+$/, '')}/?mode=dinein&tableNumber=${selectedTable}`
+    : `${vercelDomain.replace(/\/+$/, '')}/?mode=takeaway`;
 
   // Generate real QR code whenever targetUrl or activeTab changes
   useEffect(() => {
@@ -155,10 +148,10 @@ export const QRCodeModal = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h3 className="font-extrabold text-neutral-900 text-base leading-tight">
-                Barcode & QR Code Menu Meja
+                Cetak Barcode & QR Meja (Admin Resto)
               </h3>
               <p className="text-xs text-neutral-500">
-                Pindai dengan kamera HP untuk langsung memunculkan menu
+                Pilih nomor meja lalu cetak stiker untuk ditempel di meja fisik restoran
               </p>
             </div>
           </div>
@@ -239,58 +232,29 @@ export const QRCodeModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Target URL Selector for Phone Scan Support */}
+            {/* Target URL Selector for Vercel Live */}
             <div className="border-t border-neutral-200/80 pt-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <span className="text-[11px] font-semibold text-neutral-500 flex items-center space-x-1">
-                <Smartphone className="w-3.5 h-3.5 text-orange-500" />
-                <span>Format URL untuk scan HP:</span>
-              </span>
-
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button
-                  onClick={() => setHostType('network')}
-                  className={`px-2 py-0.5 rounded-md font-semibold text-[11px] transition ${
-                    hostType === 'network'
-                      ? 'bg-orange-500 text-white shadow-2xs'
-                      : 'bg-white text-neutral-700 hover:bg-neutral-50'
-                  }`}
-                  title="Gunakan IP WiFi agar HP Anda bisa langsung scan dari layar monitor"
-                >
-                  WiFi HP (192.168.1.11)
-                </button>
-
-                <button
-                  onClick={() => setHostType('auto')}
-                  className={`px-2 py-0.5 rounded-md font-semibold text-[11px] transition ${
-                    hostType === 'auto'
-                      ? 'bg-orange-500 text-white shadow-2xs'
-                      : 'bg-white text-neutral-700 hover:bg-neutral-50'
-                  }`}
-                  title="Sesuai alamat browser saat ini"
-                >
-                  Auto Origin
-                </button>
-
-                <button
-                  onClick={() => setHostType('custom')}
-                  className={`px-2 py-0.5 rounded-md font-semibold text-[11px] transition ${
-                    hostType === 'custom'
-                      ? 'bg-orange-500 text-white shadow-2xs'
-                      : 'bg-white text-neutral-700 hover:bg-neutral-50'
-                  }`}
-                  title="Gunakan link Vercel online"
-                >
-                  Vercel Live
-                </button>
+              <div className="flex items-center space-x-1.5 text-neutral-600">
+                <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="font-bold text-[11px]">Domain Vercel Live:</span>
+                <span className="font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
+                  {vercelDomain}
+                </span>
               </div>
+              <button
+                onClick={() => setIsEditingDomain(!isEditingDomain)}
+                className="text-[11px] text-primary hover:underline font-bold"
+              >
+                {isEditingDomain ? 'Selesai' : 'Ganti URL Vercel'}
+              </button>
             </div>
 
-            {hostType === 'custom' && (
+            {isEditingDomain && (
               <div className="pt-1">
                 <input
                   type="text"
-                  value={customHost}
-                  onChange={(e) => setCustomHost(e.target.value)}
+                  value={vercelDomain}
+                  onChange={(e) => setVercelDomain(e.target.value)}
                   placeholder="https://esb-order-app.vercel.app"
                   className="w-full px-3 py-1.5 text-xs bg-white border border-neutral-300 rounded-xl focus:ring-1 focus:ring-primary focus:outline-none font-mono"
                 />
@@ -405,13 +369,13 @@ export const QRCodeModal = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* How to test with real phone prompt */}
-          <div className="bg-amber-50 border border-amber-200/80 p-3 rounded-2xl text-left flex items-start space-x-2.5 text-xs text-amber-900 no-print">
-            <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          {/* Information for Admin */}
+          <div className="bg-emerald-50 border border-emerald-200/80 p-3.5 rounded-2xl text-left flex items-start space-x-2.5 text-xs text-emerald-950 no-print">
+            <Info className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div className="space-y-0.5">
-              <p className="font-bold">Cara menguji langsung dengan HP Anda:</p>
-              <p className="text-[11px] text-amber-800">
-                Pastikan pilihan URL di atas disetel ke <b>WiFi HP (192.168.1.11)</b> atau <b>Vercel Live</b>. Buka aplikasi kamera di ponsel Anda, lalu arahkan ke layar komputer ini. Tautan menu akan langsung muncul di HP Anda!
+              <p className="font-bold">Informasi Stiker Meja untuk Admin Resto:</p>
+              <p className="text-[11px] text-emerald-800">
+                Barcode ini mengarah langsung ke <b>Vercel Live</b>. Unduh gambar PNG atau cetak stand meja ini lalu tempelkan di masing-masing meja. Ketika pelanggan memindai stiker dengan kamera HP, menu makanan meja tersebut akan langsung terbuka secara online!
               </p>
             </div>
           </div>
