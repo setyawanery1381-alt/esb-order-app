@@ -193,6 +193,18 @@ export const KitchenDisplay = () => {
                       <p className="text-xs text-neutral-300 mt-1.5">
                         Pemesan: <b>{order.customerName}</b> ({order.orderMode === 'dinein' ? 'Dine In' : 'Takeaway'})
                       </p>
+                      <div className="mt-1.5 flex items-center">
+                        {order.paymentMethod === 'QRIS' ? (
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-emerald-950/70 border border-emerald-500/40 text-[10px] font-bold text-emerald-300">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                            <span>✓ Lunas QRIS (SANGCREATOR DIGITAL)</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-amber-950/70 border border-amber-500/40 text-[10px] font-bold text-amber-300">
+                            <span>⏳ Bayar di Kasir (Belum Lunas)</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="text-right">
@@ -247,6 +259,9 @@ export const KitchenDisplay = () => {
                     <span className="text-neutral-400 block text-[10px]">Total</span>
                     <span className="font-extrabold text-white">
                       {formatIDR(order.grandTotal)}
+                    </span>
+                    <span className={`block text-[10px] font-semibold ${order.paymentMethod === 'QRIS' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {order.paymentMethod === 'QRIS' ? '✓ Lunas QRIS' : '⏳ Belum Bayar'}
                     </span>
                   </div>
 

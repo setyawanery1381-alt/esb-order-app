@@ -163,8 +163,14 @@ export const OrderStatusModal = ({ order, isOpen, onClose, onOrderMore }) => {
 
             {/* Payment status badge */}
             <div className="text-center pt-2">
-              <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-sans font-bold text-[11px]">
-                {order.paymentMethod === 'QRIS' ? 'LUNAS (QRIS DIGITAL)' : 'BAYAR DI KASIR'}
+              <span className={`inline-block px-3 py-1 rounded-full font-sans font-bold text-[11px] ${
+                order.paymentMethod === 'QRIS' 
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                  : 'bg-amber-100 text-amber-800 border border-amber-300'
+              }`}>
+                {order.paymentMethod === 'QRIS' 
+                  ? '✓ LUNAS via QRIS (SANGCREATOR DIGITAL)' 
+                  : '⏳ BAYAR DI KASIR'}
               </span>
             </div>
           </div>

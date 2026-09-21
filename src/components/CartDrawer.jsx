@@ -255,7 +255,7 @@ export const CartDrawer = ({ isOpen, onClose, onProceedToPayment }) => {
               onClick={handleCheckoutClick}
               className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover active:scale-[0.99] text-white font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center justify-between text-sm transition"
             >
-              <span>Kirim Pesanan ke Dapur & Bayar</span>
+              <span>Lanjut ke Pembayaran QRIS</span>
               <div className="flex items-center space-x-1.5">
                 <span>{formatIDR(grandTotal)}</span>
                 <ArrowRight className="w-4 h-4" />
