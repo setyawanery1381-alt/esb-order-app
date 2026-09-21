@@ -71,13 +71,12 @@ export const Header = ({
     <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-neutral-200">
       {/* Top Banner: Company & Branch info + View Mode Switcher */}
       <div className="bg-neutral-900 text-white px-4 py-1.5 text-xs flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 min-w-0">
           <span className="bg-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-[10px]">
             {companyCode || RESTAURANT_INFO.companyCode} / {branchCode || RESTAURANT_INFO.branchCode}
           </span>
-          <span className="text-neutral-300 hidden sm:inline">•</span>
-          <span className="text-neutral-300 font-medium truncate max-w-[180px] sm:max-w-none">
-            {RESTAURANT_INFO.name} ({RESTAURANT_INFO.branchName})
+          <span className="text-neutral-400 font-medium truncate text-[11px] hidden sm:inline">
+            • {RESTAURANT_INFO.name} ({RESTAURANT_INFO.branchName})
           </span>
         </div>
 
@@ -138,13 +137,13 @@ export const Header = ({
         </div>
       </div>
 
-      {/* Main Header Row */}
-      <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-        {/* Brand & Outlet Dropdown */}
-        <div className="flex items-center space-x-3 min-w-0">
+      {/* Main Header Brand Row */}
+      <div className="max-w-3xl mx-auto px-4 pt-3 pb-2 flex items-center justify-between gap-3">
+        {/* Brand & Outlet Name - Full and prominent, NEVER truncated! */}
+        <div className="flex items-center space-x-3 min-w-0 flex-1">
           <button 
             onClick={() => setViewMode('landing')}
-            className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 hover:scale-105 transition-transform drop-shadow-sm bg-neutral-50 p-1 border border-neutral-200"
+            className="w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 hover:scale-105 transition-transform shadow-xs bg-orange-50/60 p-1 border border-neutral-200"
             title="Kembali ke Beranda Restoran"
           >
             <img 
@@ -153,104 +152,113 @@ export const Header = ({
               className="w-full h-full object-contain"
             />
           </button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <button 
               onClick={() => setShowOutletInfo(!showOutletInfo)}
               className="flex items-center space-x-1 text-left group"
             >
-              <h1 className="font-bold text-neutral-900 text-base leading-tight truncate group-hover:text-primary transition">
+              <h1 className="font-extrabold text-neutral-900 text-base sm:text-lg leading-tight group-hover:text-primary transition">
                 {RESTAURANT_INFO.name}
               </h1>
               <ChevronDown className="w-4 h-4 text-neutral-400 group-hover:text-primary transition flex-shrink-0" />
             </button>
-            <p className="text-xs text-neutral-500 truncate">
-              {RESTAURANT_INFO.branchName}
+            <p className="text-xs text-neutral-500 flex items-center space-x-1.5 mt-0.5">
+              <span>{RESTAURANT_INFO.branchName}</span>
+              <span>•</span>
+              <span className="text-emerald-600 font-semibold">Buka</span>
             </p>
           </div>
         </div>
 
-        {/* Right Action Badges: Dine-in / Table Number & Call Waiter */}
+        {/* Quick Top Actions: Scanner & Waiter Call */}
         <div className="flex items-center space-x-2 flex-shrink-0">
-          {/* Mode & Table Selector */}
-          <div className="flex items-center bg-neutral-100 p-1 rounded-xl border border-neutral-200 text-xs">
-            <button
-              onClick={() => handleModeToggle('dinein')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition ${
-                orderMode === 'dinein'
-                  ? 'bg-white text-primary shadow-sm font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              Dine In
-            </button>
-            <button
-              onClick={() => handleModeToggle('takeaway')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition ${
-                orderMode === 'takeaway'
-                  ? 'bg-white text-primary shadow-sm font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              Takeaway
-            </button>
-          </div>
+          <button
+            onClick={onOpenScanner}
+            className="p-2 bg-neutral-100 hover:bg-orange-50 hover:text-primary border border-neutral-200 rounded-xl text-neutral-700 transition flex items-center space-x-1"
+            title="Pindai QR / Masukkan Nomor Meja"
+          >
+            <Camera className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold hidden sm:inline">Pindai Meja</span>
+          </button>
 
-          {/* Table Number Badge */}
-          {orderMode === 'dinein' && (
-            <div className="flex items-center space-x-1">
-              {isEditingTable ? (
-                <form onSubmit={handleTableSave} className="flex items-center">
-                  <input
-                    type="text"
-                    value={tempTable}
-                    onChange={(e) => setTempTable(e.target.value)}
-                    className="w-14 px-2 py-1 text-xs font-bold border border-primary rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-center"
-                    autoFocus
-                    placeholder="No"
-                    onBlur={handleTableSave}
-                  />
-                </form>
-              ) : (
-                <button
-                  onClick={() => {
-                    setTempTable(tableNumber);
-                    setIsEditingTable(true);
-                  }}
-                  className="px-2.5 py-1.5 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-xs font-bold text-primary flex items-center space-x-1 transition"
-                  title="Klik untuk ubah nomor meja"
-                >
-                  <span>Meja {tableNumber}</span>
-                </button>
-              )}
-
-              <button
-                onClick={onOpenScanner}
-                className="p-1.5 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-primary transition"
-                title="Pindai / Ganti Barcode QR Meja"
-              >
-                <Camera className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
-          {/* Call Waiter Button */}
           {orderMode === 'dinein' && (
             <button
               onClick={onOpenCallWaiter}
-              className={`relative p-2 rounded-xl border transition flex items-center justify-center ${
+              className={`relative p-2 rounded-xl border transition flex items-center space-x-1 ${
                 pendingCalls > 0
-                  ? 'bg-amber-50 border-amber-300 text-amber-600 animate-pulse'
-                  : 'bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700'
+                  ? 'bg-amber-500 text-white border-amber-600 animate-pulse'
+                  : 'bg-neutral-100 hover:bg-neutral-200 border-neutral-200 text-neutral-700'
               }`}
-              title="Panggil Pelayan / Bantuan"
+              title="Panggil Pelayan ke Meja"
             >
               <BellRing className="w-4 h-4" />
+              <span className="text-xs font-bold hidden sm:inline">Panggil</span>
               {pendingCalls > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
                   {pendingCalls}
                 </span>
               )}
             </button>
+          )}
+        </div>
+      </div>
+
+      {/* Mode & Table Selector Row (Dedicated full-width row so it never squishes) */}
+      <div className="max-w-3xl mx-auto px-4 pb-2.5 flex items-center justify-between gap-2">
+        {/* Dine In / Takeaway Toggle */}
+        <div className="flex items-center bg-neutral-100 p-1 rounded-xl border border-neutral-200 text-xs">
+          <button
+            type="button"
+            onClick={() => handleModeToggle('dinein')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+              orderMode === 'dinein'
+                ? 'bg-white text-primary shadow-xs'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            <span>🍽️ Dine In</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeToggle('takeaway')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+              orderMode === 'takeaway'
+                ? 'bg-white text-primary shadow-xs'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            <span>🛍️ Takeaway</span>
+          </button>
+        </div>
+
+        {/* Table Number Selector Button */}
+        <div>
+          {orderMode === 'dinein' ? (
+            tableNumber ? (
+              <button
+                type="button"
+                onClick={onOpenScanner}
+                className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-xs font-extrabold text-primary flex items-center space-x-1.5 transition shadow-2xs"
+                title="Nomor meja aktif. Klik untuk ganti."
+              >
+                <span>🪑 Meja {tableNumber}</span>
+                <span className="text-[10px] text-orange-400 font-medium underline">Ganti</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenScanner}
+                className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-black flex items-center space-x-1.5 shadow-sm animate-pulse transition"
+                title="Klik untuk memilih nomor meja Anda"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Pilih No. Meja</span>
+              </button>
+            )
+          ) : (
+            <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-3 py-1.5 rounded-xl border border-neutral-200">
+              🛍️ Pesan Bawa Pulang
+            </span>
           )}
         </div>
       </div>

@@ -26,6 +26,7 @@ export const CartDrawer = ({ isOpen, onClose, onProceedToPayment }) => {
     tax,
     grandTotal,
     tableNumber,
+    setTableNumber,
     orderMode,
     customerName,
     setCustomerName,
@@ -40,6 +41,10 @@ export const CartDrawer = ({ isOpen, onClose, onProceedToPayment }) => {
   const handleCheckoutClick = () => {
     if (!customerName.trim()) {
       setFormError('Silakan masukkan nama Anda untuk pemesanan');
+      return;
+    }
+    if (orderMode === 'dinein' && !tableNumber) {
+      setFormError('Silakan masukkan nomor meja Anda terlebih dahulu untuk pesanan Dine In');
       return;
     }
     setFormError('');
@@ -63,7 +68,9 @@ export const CartDrawer = ({ isOpen, onClose, onProceedToPayment }) => {
                 Ringkasan Pesanan
               </h3>
               <p className="text-xs text-neutral-500">
-                {orderMode === 'dinein' ? `Dine In • Meja ${tableNumber}` : 'Takeaway (Bawa Pulang)'}
+                {orderMode === 'dinein' 
+                  ? (tableNumber ? `Dine In • Meja ${tableNumber}` : 'Dine In • Belum Pilih Meja') 
+                  : 'Takeaway (Bawa Pulang)'}
               </p>
             </div>
           </div>
@@ -220,6 +227,25 @@ export const CartDrawer = ({ isOpen, onClose, onProceedToPayment }) => {
                     />
                   </div>
                 </div>
+
+                {/* Table number input for Dine-in */}
+                {orderMode === 'dinein' && (
+                  <div className="flex items-center justify-between p-2.5 bg-orange-50/80 border border-orange-200 rounded-xl text-xs">
+                    <span className="text-neutral-700 font-bold">Nomor Meja:</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-neutral-500 font-medium">Meja</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={tableNumber}
+                        onChange={(e) => setTableNumber(e.target.value)}
+                        placeholder="No. Meja"
+                        className="w-24 px-2.5 py-1 text-center font-black text-primary border-2 border-primary/60 rounded-lg bg-white text-xs focus:outline-none focus:ring-2 focus:ring-primary shadow-xs"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Price Breakdown */}

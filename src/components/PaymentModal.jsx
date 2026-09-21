@@ -108,7 +108,7 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
                 Pilih Pembayaran
               </h3>
               <p className="text-xs text-neutral-500">
-                {orderMode === 'dinein' ? `Meja ${tableNumber}` : 'Takeaway'} • Total Tagihan: <b className="text-neutral-800">{formatIDR(payableAmount)}</b>
+                {orderMode === 'dinein' ? (tableNumber ? `Meja ${tableNumber}` : 'Dine In') : 'Takeaway'} • Total Tagihan: <b className="text-neutral-800">{formatIDR(payableAmount)}</b>
               </p>
             </div>
             <button
@@ -278,7 +278,7 @@ export const PaymentModal = ({ isOpen, onClose, onOrderSuccess }) => {
               <div className="bg-white rounded-xl p-3 border border-neutral-200 max-w-xs mx-auto text-left space-y-1">
                 <div className="flex justify-between text-xs text-neutral-500">
                   <span>Nomor Meja:</span>
-                  <span className="font-bold text-neutral-800">Meja {tableNumber}</span>
+                  <span className="font-bold text-neutral-800">{tableNumber ? `Meja ${tableNumber}` : (orderMode === 'takeaway' ? 'Takeaway' : '-')}</span>
                 </div>
                 <div className="flex justify-between text-xs text-neutral-500">
                   <span>Total Tagihan:</span>

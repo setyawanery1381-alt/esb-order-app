@@ -25,7 +25,7 @@ import {
 export const QRCodeModal = ({ isOpen, onClose }) => {
   const { tableNumber, setTableNumber, setOrderMode, setViewMode } = useApp();
   
-  const [selectedTable, setSelectedTable] = useState(tableNumber || '38');
+  const [selectedTable, setSelectedTable] = useState(tableNumber || '1');
   const [mode, setMode] = useState('dinein'); // 'dinein' | 'takeaway'
   const [activeTab, setActiveTab] = useState('tentcard'); // 'tentcard' | 'qr' | 'barcode'
   

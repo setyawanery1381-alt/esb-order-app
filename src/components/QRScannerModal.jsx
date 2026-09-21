@@ -19,7 +19,7 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess, initialTab = 'p
   const { tableNumber, setTableNumber, setOrderMode, setViewMode } = useApp();
   
   const [activeTab, setActiveTab] = useState(initialTab); // 'picker' | 'camera'
-  const [inputTable, setInputTable] = useState(tableNumber || '38');
+  const [inputTable, setInputTable] = useState(tableNumber || '');
   const [isScanning, setIsScanning] = useState(false);
   const [detectedTable, setDetectedTable] = useState(null);
   const [cameraError, setCameraError] = useState(null);
@@ -31,7 +31,7 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess, initialTab = 'p
   useEffect(() => {
     if (isOpen) {
       setActiveTab(initialTab);
-      setInputTable(tableNumber || '38');
+      setInputTable(tableNumber || '');
     }
   }, [isOpen, initialTab, tableNumber]);
 
@@ -128,7 +128,8 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess, initialTab = 'p
 
   // Process selected or confirmed table and jump to food menu
   const handleSelectTable = (tblNum) => {
-    const finalTable = String(tblNum || '38').trim();
+    const finalTable = String(tblNum || '').trim();
+    if (!finalTable) return;
     setIsScanning(true);
     setDetectedTable(finalTable);
 
@@ -262,8 +263,8 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess, initialTab = 'p
                       max="99"
                       value={inputTable}
                       onChange={(e) => setInputTable(e.target.value)}
-                      placeholder="38"
-                      className="w-28 h-12 text-center text-3xl font-black bg-neutral-900 border-2 border-primary/60 rounded-xl text-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 shadow-inner"
+                      placeholder="Contoh: 5"
+                      className="w-32 h-12 text-center text-2xl font-black bg-neutral-900 border-2 border-primary/60 rounded-xl text-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/40 shadow-inner"
                     />
                   </div>
 
@@ -309,11 +310,11 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess, initialTab = 'p
 
               {/* Big Action Button to enter food menu */}
               <button
-                onClick={() => handleSelectTable(inputTable || '38')}
-                disabled={isScanning}
-                className="w-full py-4 px-6 bg-gradient-to-r from-primary to-orange-500 hover:from-primary-hover hover:to-orange-600 active:scale-[0.99] text-white font-black text-base rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center space-x-2 transition-all mt-2"
+                onClick={() => handleSelectTable(inputTable)}
+                disabled={isScanning || !inputTable}
+                className="w-full py-4 px-6 bg-gradient-to-r from-primary to-orange-500 hover:from-primary-hover hover:to-orange-600 active:scale-[0.99] disabled:opacity-50 text-white font-black text-base rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center space-x-2 transition-all mt-2"
               >
-                <span>Masuk ke Menu Makanan (Meja {inputTable || '...'})</span>
+                <span>{inputTable ? `Masuk ke Menu Makanan (Meja ${inputTable})` : 'Pilih atau Masukkan Nomor Meja'}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -389,7 +390,7 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess, initialTab = 'p
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  {[38, 12, 5, 21].map((tbl) => (
+                  {[1, 2, 5, 8, 12].map((tbl) => (
                     <button
                       key={tbl}
                       disabled={isScanning}

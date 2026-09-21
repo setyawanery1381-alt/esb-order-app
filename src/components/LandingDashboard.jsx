@@ -300,10 +300,10 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase, 
               © 2026 {RESTAURANT_INFO.name}. Powered by ESB Order QR System.
             </p>
             <button
-              onClick={() => handleQuickDineIn('38')}
+              onClick={() => onOpenTableInput ? onOpenTableInput() : onOpenScanner()}
               className="text-primary hover:underline font-bold text-[11px]"
             >
-              Langsung ke Meja 38 ➔
+              Masukkan No. Meja ➔
             </button>
           </div>
         </div>

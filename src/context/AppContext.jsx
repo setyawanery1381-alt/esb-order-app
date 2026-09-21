@@ -21,7 +21,7 @@ export const AppProvider = ({ children }) => {
   const getInitialParams = () => {
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode') || 'dinein';
-    const table = params.get('tableNumber') || '38';
+    const table = params.get('tableNumber') || '';
 
     // Parse path segments, e.g. /CPBS/RRGW/order
     const segments = window.location.pathname.split('/').filter(Boolean);
@@ -256,9 +256,9 @@ export const AppProvider = ({ children }) => {
     const orderId = `ORD-${Date.now().toString().slice(-6)}`;
     const newOrder = {
       orderId,
-      tableNumber,
+      tableNumber: tableNumber || (orderMode === 'takeaway' ? 'Takeaway' : '-'),
       orderMode,
-      customerName: customerName.trim() || `Pelanggan Meja ${tableNumber}`,
+      customerName: customerName.trim() || (tableNumber ? `Pelanggan Meja ${tableNumber}` : (orderMode === 'takeaway' ? 'Pelanggan Takeaway' : 'Pelanggan')),
       customerPhone: customerPhone.trim() || '-',
       items: [...cart],
       subtotal,
