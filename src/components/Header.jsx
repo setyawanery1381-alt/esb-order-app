@@ -108,10 +108,10 @@ export const Header = ({
           <button
             onClick={onOpenQRCode}
             className="flex items-center space-x-1 px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded transition"
-            title="Cetak & Tampilkan QR Meja"
+            title="Cetak & Tampilkan Barcode / QR Code Menu Meja"
           >
-            <QrCode className="w-3.5 h-3.5" />
-            <span className="hidden xs:inline">QR Meja</span>
+            <QrCode className="w-3.5 h-3.5 text-orange-400" />
+            <span className="hidden xs:inline">Barcode Menu</span>
           </button>
 
           <button

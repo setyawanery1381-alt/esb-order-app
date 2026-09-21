@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import jsQR from 'jsqr';
 import { useApp } from '../context/AppContext';
 import { 
   X, 
@@ -23,6 +24,7 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
   const [cameraError, setCameraError] = useState(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const animFrameRef = useRef(null);
 
   // Initialize camera when camera tab is active
   useEffect(() => {
@@ -43,11 +45,14 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
         });
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.setAttribute('playsinline', 'true');
+          videoRef.current.play().catch(e => console.warn('Video play error:', e));
+          animFrameRef.current = requestAnimationFrame(scanVideoFrame);
         }
       } else {
         setCameraError('Kamera tidak didukung pada browser ini. Silakan gunakan simulasi scan atau pilih meja.');
@@ -58,7 +63,52 @@ export const QRScannerModal = ({ isOpen, onClose, onScanSuccess }) => {
     }
   };
 
+  const scanVideoFrame = () => {
+    if (!videoRef.current || !streamRef.current) return;
+
+    if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && !isScanning) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert',
+        });
+
+        if (code && code.data) {
+          console.log('Detected QR code data:', code.data);
+          let targetTable = null;
+          try {
+            const parsed = new URL(code.data);
+            const tbl = parsed.searchParams.get('tableNumber');
+            if (tbl) targetTable = parseInt(tbl, 10);
+          } catch {
+            const match = code.data.match(/(?:TBL|MEJA|TABLE)[-_ ]?(\d+)/i) || code.data.match(/(\d+)/);
+            if (match) targetTable = parseInt(match[1], 10);
+          }
+
+          if (targetTable && targetTable > 0 && targetTable <= 50) {
+            handleSelectTable(targetTable);
+            return;
+          } else if (code.data.toLowerCase().includes('takeaway')) {
+            handleTakeaway();
+            return;
+          }
+        }
+      }
+    }
+
+    animFrameRef.current = requestAnimationFrame(scanVideoFrame);
+  };
+
   const stopCamera = () => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;

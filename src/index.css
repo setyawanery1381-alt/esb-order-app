@@ -34,3 +34,32 @@
 .animate-pulse-ring {
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Print styles for Stand Meja / Akrilik QR Code */
+@media print {
+  body {
+    background: white !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .printable-card, .printable-card * {
+    visibility: visible;
+  }
+  .printable-card {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 380px !important;
+    max-width: 90% !important;
+    margin: 0 auto;
+    box-shadow: none !important;
+    border: 2px solid #f05a28 !important;
+    background: white !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+

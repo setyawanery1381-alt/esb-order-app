@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { RESTAURANT_INFO, MENU_ITEMS } from '../data/menuData';
 import { formatIDR } from '../utils/format';
 import { RestaurantLogo } from './RestaurantLogo';
+import logoSvg from '../assets/restaurant-logo.svg';
 import { 
   QrCode, 
   ShoppingBag, 
@@ -70,10 +71,11 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }
 
             <button
               onClick={onOpenQRCode}
-              className="flex items-center space-x-1 px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-xl font-bold transition"
+              className="flex items-center space-x-1 px-3 py-1 bg-orange-600/30 hover:bg-orange-600/50 text-orange-200 border border-orange-500/40 rounded-xl font-bold transition shadow-xs"
+              title="Buat & Tampilkan Barcode / QR Code Menu Meja"
             >
               <QrCode className="w-3.5 h-3.5 text-orange-400" />
-              <span className="hidden xs:inline">QR Meja</span>
+              <span>Barcode Menu</span>
             </button>
 
             <button
@@ -101,7 +103,7 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }
           <div className="flex flex-col items-center justify-center space-y-3">
             <div className="w-24 h-24 sm:w-28 sm:h-28 relative p-2 bg-gradient-to-b from-neutral-800 to-neutral-900 rounded-3xl border border-neutral-700/80 shadow-2xl shadow-primary/20">
               <img
-                src="/src/assets/restaurant-logo.svg"
+                src={logoSvg}
                 alt={RESTAURANT_INFO.name}
                 className="w-full h-full object-contain"
               />
@@ -124,7 +126,7 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }
           </div>
 
           {/* Core Call-to-Action Buttons */}
-          <div className="pt-2 space-y-3 max-w-md mx-auto">
+          <div className="pt-2 space-y-2.5 max-w-md mx-auto">
             {/* Main Primary Button: Scan QR Barcode */}
             <button
               onClick={onOpenScanner}
@@ -135,6 +137,15 @@ export const LandingDashboard = ({ onOpenScanner, onOpenQRCode, onOpenFirebase }
               </div>
               <span>Pindai Barcode QR Meja</span>
               <ArrowRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            {/* Quick Button: Tampilkan Barcode Menu di Layar */}
+            <button
+              onClick={onOpenQRCode}
+              className="w-full py-3 px-4 bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/40 active:scale-[0.99] rounded-xl text-xs sm:text-sm font-bold text-orange-300 flex items-center justify-center space-x-2 transition"
+            >
+              <QrCode className="w-4 h-4 text-orange-400" />
+              <span>Tampilkan Barcode Menu di Layar (Siap Scan HP)</span>
             </button>
 
             {/* Secondary Option: Direct Table 38 or Takeaway */}
